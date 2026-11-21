@@ -10,8 +10,7 @@ node_modules/
 .test-e2e/
 nul
 
-# Dev-Only Test Harnesses, Scripts & Tarballs (Not for Git)
-scripts/
+# Dev-Only Test Harnesses, Temporary Scripts & Tarballs (Not for Git)
 reference/
 *.tgz
 

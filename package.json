@@ -71,6 +71,7 @@
   ],
   "scripts": {
     "test": "tsx test/v2-swarm.spec.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:github": "node scripts/create-release.mjs"
   }
 }
