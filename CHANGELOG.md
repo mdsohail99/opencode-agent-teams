@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v1.0.0
 
 ---
 
+## [2.1.0] - 2026-11-21
+
+### Changed & Modernized (OpenCode v2.3.2 Engine Alignment)
+- **OpenCode v2.3.2 SDK Upgrade:** Upgraded `@opencode/plugin`, `@opencode/client`, and `@opencode/schema` to `2.3.2`, and `effect` to `4.1.0`.
+- **`experimental.subagent_depth: 2` Standardization:** Updated `bin/cli.js`, `src/index.ts`, and documentation to write nested subagent depth under `"experimental": { "subagent_depth": 2 }` per OpenCode v2's configuration schema, safely migrating deprecated top-level keys.
+- **Lowercase `permission.subagent` Contracts:** Replaced legacy v1 `permission.task` with OpenCode v2's `permission.subagent` across all 7 department orchestrators (`agent-teams`, `backend`, `frontend`, `security`, `qa`, `devops`, `ai-data`), mapping to normalized lowercase agent IDs (`backend-architect`, etc.) to prevent `BlockedError` rejections.
+- **Native `subagent` Tool Instructions:** Replaced stale `Task(...)` and relay instructions with OpenCode v2's native `subagent(...)` tool and session resumption via `sessionID`.
+- **Non-Blocking Worktree Discipline:** Made `worktree: false` the default in `team_delegate`, eliminating branch-creation overhead for read-only audits and only isolating tasks that explicitly request concurrent write isolation (`worktree: true`).
+- **Robust Deliverable Harvesting:** Extracted assistant deliverable text directly from `ctx.session.context(...)` rather than relying on transient inbox entry objects.
+
+---
+
 ## [2.0.1] - 2026-10-22
 
 ### Added & Documented

@@ -1,6 +1,6 @@
 {
   "name": "@mdsohail99/opencode-agent-teams",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Native Agent-Teams orchestration plugin for OpenCode v2",
   "type": "module",
   "bin": {
@@ -25,10 +25,10 @@
     "node": ">=20.19"
   },
   "dependencies": {
-    "@opencode/client": "2.1.1",
-    "@opencode/plugin": "2.1.1",
-    "@opencode/schema": "2.1.1",
-    "effect": "4.0.1"
+    "@opencode/client": "2.3.2",
+    "@opencode/plugin": "2.3.2",
+    "@opencode/schema": "2.3.2",
+    "effect": "4.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",

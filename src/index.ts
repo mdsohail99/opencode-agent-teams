@@ -24,7 +24,8 @@ The swarm is organized into departments led by Orchestrators (Backend, Frontend,
 `
 
 /**
- * Ensures subagent_depth: 2 is present in an opencode.json configuration file.
+ * Ensures experimental.subagent_depth: 2 is present in an opencode.json configuration file
+ * and removes any deprecated top-level subagent_depth.
  */
 function ensureSubagentDepth(filePath: string) {
   try {
@@ -32,8 +33,20 @@ function ensureSubagentDepth(filePath: string) {
       const raw = fs.readFileSync(filePath, "utf-8")
       const parsed = JSON.parse(raw)
       if (typeof parsed === "object" && parsed !== null) {
-        if (!parsed.subagent_depth || parsed.subagent_depth < 2) {
-          parsed.subagent_depth = 2
+        let changed = false
+        if ("subagent_depth" in parsed) {
+          delete parsed.subagent_depth
+          changed = true
+        }
+        if (!parsed.experimental || typeof parsed.experimental !== "object") {
+          parsed.experimental = {}
+          changed = true
+        }
+        if (!parsed.experimental.subagent_depth || parsed.experimental.subagent_depth < 2) {
+          parsed.experimental.subagent_depth = 2
+          changed = true
+        }
+        if (changed) {
           fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), "utf-8")
         }
       }
@@ -46,10 +59,15 @@ function ensureSubagentDepth(filePath: string) {
 export default Plugin.define({
   id: "agent-teams",
   async setup(ctx: Plugin.Context) {
-    // 0. Auto-ensure subagent_depth: 2 in local and config-dir opencode.json
+    // 0. Auto-ensure experimental.subagent_depth: 2 in local and config-dir opencode.json
     ensureSubagentDepth(path.resolve(process.cwd(), "opencode.json"))
     if (process.env.OPENCODE_CONFIG_DIR) {
       ensureSubagentDepth(path.join(process.env.OPENCODE_CONFIG_DIR, "opencode.json"))
+    } else {
+      const homeDir = process.env.USERPROFILE || process.env.HOME || ""
+      if (homeDir) {
+        ensureSubagentDepth(path.join(homeDir, ".config", "opencode", "opencode.json"))
+      }
     }
 
     // 1. Register Swarm Tools (team_delegate, team_status, team_broadcast, team_terminate)

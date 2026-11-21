@@ -13,8 +13,8 @@ The primary entry point is the root orchestrator: `agent-teams`.
 
 ---
 
-## OpenCode v2 Hierarchical Swarms (`subagent_depth = 2`)
-OpenCode v2 natively supports nested subagents up to `subagent_depth = 2` (configured in `opencode.json` via `"subagent_depth": 2`):
+## OpenCode v2 Hierarchical Swarms (`experimental.subagent_depth = 2`)
+OpenCode v2 natively supports nested subagents up to `subagent_depth = 2` (configured in `opencode.json` via `"experimental": { "subagent_depth": 2 }`):
 - **Depth 0 (Root Orchestrator):** `agent-teams` orchestrates high-level departmental workflows, monitors progress, and resolves cross-department blockers.
 - **Depth 1 (Department Leads):** Department Leads (`backend`, `frontend`, `security`, `qa`, `devops`, `ai-data`) receive departmental scopes and dispatch specialists via `team_delegate` or native `subagent` tools.
 - **Depth 2 (Domain Specialists):** 68 domain specialists (e.g. `backend-architect`, `frontend-developer`, `database-optimizer`, `api-tester`, `a11y-auditor`) execute focused implementation, testing, or auditing tasks inside isolated Git worktrees.

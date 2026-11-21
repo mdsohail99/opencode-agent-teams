@@ -5,7 +5,7 @@
   <p>
     <a href="https://www.npmjs.com/package/@mdsohail99/opencode-agent-teams"><img src="https://img.shields.io/npm/v/@mdsohail99/opencode-agent-teams?style=flat-square&color=blue" alt="NPM Version"/></a>
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License"/>
-    <img src="https://img.shields.io/badge/OpenCode-v2.1.1-FF6B6B?style=flat-square&logo=opencode&logoColor=white" alt="OpenCode v2"/>
+    <img src="https://img.shields.io/badge/OpenCode-v2.3.2-FF6B6B?style=flat-square&logo=opencode&logoColor=white" alt="OpenCode v2"/>
     <img src="https://img.shields.io/badge/Node.js-%3E%3D20.19-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js"/>
     <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
   </p>
@@ -15,16 +15,23 @@
 
 ## 📖 Overview
 
-**`@mdsohail99/opencode-agent-teams`** is the official **native multi-agent orchestration plugin** for [OpenCode v2](https://github.com/sst/opencode) (`@opencode/cli@2.1.1`).
+**`@mdsohail99/opencode-agent-teams`** is the official **native multi-agent orchestration plugin** for [OpenCode v2](https://github.com/sst/opencode) (`@opencode/cli@2.3.2`).
 
 In v1, running multi-agent swarms required external Node.js relay daemons, port tokens, and background socket connections. 
 **In v2, the relay is completely eliminated.** 
 
-Agent-Teams v2 runs **100% in-process** using OpenCode's native `@opencode/plugin` and `@opencode/client` architecture. It enables high-performance **2-level hierarchical swarms** (`subagent_depth = 2`), **isolated Git worktree sandboxing**, and real-time swarm steering with **zero background processes, zero localhost ports, and zero configuration bloat**.
+Agent-Teams v2 runs **100% in-process** using OpenCode's native `@opencode/plugin` and `@opencode/client` architecture. It enables high-performance **2-level hierarchical swarms** (`experimental.subagent_depth = 2`), **isolated Git worktree sandboxing**, and real-time swarm steering with **zero background processes, zero localhost ports, and zero configuration bloat**.
 
 ---
 
 ## 🏗️ v2 Swarm Architecture
+
+<p align="center">
+  <img src="assets/agent_teams_v2_architecture.gif" alt="OpenCode Agent-Teams v2 Architecture" width="720"/>
+</p>
+
+<details>
+<summary><b>View Raw Mermaid Architecture Flow</b></summary>
 
 ```mermaid
 flowchart TD
@@ -51,6 +58,8 @@ flowchart TD
     Spec3 --> Summary
 ```
 
+</details>
+
 ---
 
 ### 🔄 Hub-and-Spoke: The Delegating Agent as Escalation Resolver
@@ -71,8 +80,8 @@ In multi-agent swarms, letting specialists or leads call arbitrary peer agents c
 
 ## ✨ Key Features in v2
 
-* **🚀 100% In-Process Native Plugin**: Built directly on `@opencode/plugin@2.1.1` and `@opencode/client@2.1.1`. No external relay daemons, no background servers, no socket tokens, and zero orphaned processes.
-* **🌳 2-Level Hierarchical Swarms (`subagent_depth = 2`)**: Out-of-the-box support for nested multi-agent trees:
+* **🚀 100% In-Process Native Plugin**: Built directly on `@opencode/plugin@2.3.2` and `@opencode/client@2.3.2`. No external relay daemons, no background servers, no socket tokens, and zero orphaned processes.
+* **🌳 2-Level Hierarchical Swarms (`experimental.subagent_depth = 2`)**: Out-of-the-box support for nested multi-agent trees:
   * **Depth 0**: Root Orchestrator (`agent-teams`)
   * **Depth 1**: Department Leads (`backend`, `frontend`, `security`, `qa`, `devops`, `ai-data`)
   * **Depth 2**: 68 Curated Domain Specialists (`backend-architect`, `api-tester`, `a11y-auditor`, `threat-detection-engineer`, etc.)
@@ -99,7 +108,7 @@ npx @mdsohail99/opencode-agent-teams
 ```
 
 This automatically:
-1. Configures your global `~/.config/opencode/opencode.json` with `"subagent_depth": 2` and registers the plugin.
+1. Configures your global `~/.config/opencode/opencode.json` with `"experimental": { "subagent_depth": 2 }` and registers the plugin.
 2. Copies the 75 curated Department Leads and Specialists into `~/.config/opencode/agents/`.
 
 ---
@@ -111,7 +120,9 @@ Add the plugin to your global `~/.config/opencode/opencode.json` (or your projec
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "subagent_depth": 2,
+  "experimental": {
+    "subagent_depth": 2
+  },
   "plugins": [
     "@mdsohail99/opencode-agent-teams"
   ]

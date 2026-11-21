@@ -15,7 +15,7 @@ export const DelegateInput = Schema.Struct({
     description: "Detailed instructions and requirements for the teammate",
   }),
   worktree: Schema.optional(Schema.Boolean).annotate({
-    description: "Whether to run this task in an isolated git worktree to prevent concurrent write collisions (default: true)",
+    description: "Whether to run this task in an isolated git worktree (default: false; pass true for tasks modifying files concurrently)",
   }),
 })
 
@@ -40,7 +40,7 @@ export function createDelegateTool(ctx: Plugin.Context) {
     ) => {
       const taskId = crypto.randomUUID().slice(0, 8)
       const baseDir = process.cwd()
-      const useWorktree = input.worktree !== false
+      const useWorktree = input.worktree === true
       const targetAgentId = normalizeAgentId(input.agent_type)
 
       let sandbox: WorktreeSandbox | undefined
@@ -106,7 +106,34 @@ export function createDelegateTool(ctx: Plugin.Context) {
         let deliverableText =
           (promptResult as any)?.text ||
           (promptResult as any)?.content ||
-          "Task execution dispatched."
+          ""
+
+        // Inspect session context for the final assistant deliverable text
+        if (ctx.session?.context) {
+          try {
+            const messages = await ctx.session.context({ sessionID: sessionId } as any)
+            if (Array.isArray(messages)) {
+              for (let i = messages.length - 1; i >= 0; i--) {
+                const msg = messages[i]
+                if (msg?.type === "assistant" && Array.isArray(msg.content)) {
+                  const textParts = msg.content
+                    .filter((p: any) => p?.type === "text" && typeof p?.text === "string")
+                    .map((p: any) => p.text)
+                  if (textParts.length > 0) {
+                    deliverableText = textParts.join("\n")
+                    break
+                  }
+                }
+              }
+            }
+          } catch {
+            // Non-fatal fallback
+          }
+        }
+
+        if (!deliverableText) {
+          deliverableText = `Task executed by ${targetAgentId} in session ${sessionId}.`
+        }
 
         // If a worktree was used, reconcile and merge changes back to base branch
         let reconcileNotice = ""

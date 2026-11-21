@@ -71,7 +71,7 @@ function getStatus(globalMode = true) {
     configExists = true
     try {
       const parsed = JSON.parse(fs.readFileSync(configPath, "utf-8"))
-      subagentDepth = parsed.subagent_depth ?? null
+      subagentDepth = parsed.experimental?.subagent_depth ?? parsed.subagent_depth ?? null
       if (Array.isArray(parsed.plugins)) {
         isPluginRegistered = parsed.plugins.some(
           (p) => typeof p === "string" && (p.includes("agent-teams") || p.includes("orchestration"))
@@ -112,7 +112,9 @@ async function doInstall(globalMode = true) {
 
   let config = {
     $schema: "https://opencode.ai/config.json",
-    subagent_depth: 2,
+    experimental: {
+      subagent_depth: 2,
+    },
     plugins: [],
   }
 
@@ -124,7 +126,11 @@ async function doInstall(globalMode = true) {
     }
   }
 
-  config.subagent_depth = 2
+  delete config.subagent_depth
+  if (!config.experimental || typeof config.experimental !== "object") {
+    config.experimental = {}
+  }
+  config.experimental.subagent_depth = 2
 
   const pluginRef = fs.existsSync(path.join(rootDir, "src", "index.ts"))
     ? rootDir.replace(/\\/g, "/")
@@ -139,7 +145,7 @@ async function doInstall(globalMode = true) {
 
   fs.mkdirSync(path.dirname(configPath), { recursive: true })
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8")
-  console.log(`  ${c.green}✓${c.reset} Configured opencode.json (subagent_depth: 2, plugin: ${pluginRef})`)
+  console.log(`  ${c.green}✓${c.reset} Configured opencode.json (experimental.subagent_depth: 2, plugin: ${pluginRef})`)
 
   const shippedAgents = getShippedAgents()
   if (shippedAgents.length > 0) {
@@ -154,7 +160,7 @@ async function doInstall(globalMode = true) {
 
     fs.writeFileSync(
       manifestPath,
-      JSON.stringify({ plugin: "@mdsohail99/opencode-agent-teams", version: "2.0.0", files: installedList }, null, 2),
+      JSON.stringify({ plugin: "@mdsohail99/opencode-agent-teams", version: "2.1.0", files: installedList }, null, 2),
       "utf-8"
     )
     console.log(`  ${c.green}✓${c.reset} Installed ${installedList.length} curated agents into ${agentsTargetDir}`)
