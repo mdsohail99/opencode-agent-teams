@@ -11,6 +11,12 @@ const rootDir = path.resolve(__dirname, "..")
 const args = process.argv.slice(2)
 const binName = path.basename(process.argv[1] || "")
 
+let cliVersion = ""
+try {
+  const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"))
+  cliVersion = pkg.version || ""
+} catch {}
+
 // ANSI styling
 const c = {
   reset: "\x1b[0m",
@@ -66,6 +72,7 @@ function getStatus(globalMode = true) {
   let subagentDepth = null
   let isPluginRegistered = false
   let agentCount = 0
+  let installedVersion = null
 
   if (fs.existsSync(configPath)) {
     configExists = true
@@ -86,6 +93,16 @@ function getStatus(globalMode = true) {
     } catch {}
   }
 
+  const manifestPath = path.resolve(agentsDir, ".agent-teams-manifest.json")
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
+      if (manifest.version) {
+        installedVersion = manifest.version
+      }
+    } catch {}
+  }
+
   const isInstalled = isPluginRegistered && agentCount > 0
   return {
     targetDir,
@@ -95,6 +112,8 @@ function getStatus(globalMode = true) {
     subagentDepth,
     isPluginRegistered,
     agentCount,
+    installedVersion,
+    cliVersion,
     isInstalled,
   }
 }
@@ -167,10 +186,10 @@ async function doInstall(globalMode = true) {
 
     fs.writeFileSync(
       manifestPath,
-      JSON.stringify({ plugin: "@mdsohail99/opencode-agent-teams", version: "2.1.0", files: installedList }, null, 2),
+      JSON.stringify({ plugin: "@mdsohail99/opencode-agent-teams", version: cliVersion, files: installedList }, null, 2),
       "utf-8"
     )
-    console.log(`  ${c.green}✓${c.reset} Installed ${installedList.length} curated agents into ${agentsTargetDir}`)
+    console.log(`  ${c.green}✓${c.reset} Installed ${installedList.length} curated agents (v${cliVersion}) into ${agentsTargetDir}`)
   }
 
   console.log(`\n${c.green}${c.bold}✓ Setup complete!${c.reset} Launch OpenCode with ${c.bold}opencode${c.reset} and select agent-teams.\n`)
@@ -249,19 +268,25 @@ function printStatus() {
   const globalStat = getStatus(true)
   const localStat = getStatus(false)
 
-  console.log(`\n${c.bold}${c.cyan}Agent-Teams v2 Status Report${c.reset}\n`)
+  console.log(`\n${c.bold}${c.cyan}Agent-Teams v2 Status Report (CLI v${cliVersion})${c.reset}\n`)
   console.log(`${c.bold}Global Configuration (~/.config/opencode):${c.reset}`)
-  console.log(`  Status:         ${globalStat.isInstalled ? c.green + "Installed (Active)" + c.reset : c.dim + "Not Installed" + c.reset}`)
-  console.log(`  Config Path:    ${globalStat.configPath}`)
-  console.log(`  Subagent Depth: ${globalStat.subagentDepth ?? "not set"}`)
-  console.log(`  Plugin Linked:  ${globalStat.isPluginRegistered ? c.green + "Yes" + c.reset : "No"}`)
-  console.log(`  Agents Count:   ${globalStat.agentCount} agents in ${globalStat.agentsDir}`)
+  console.log(`  Status:            ${globalStat.isInstalled ? c.green + "Installed (Active)" + c.reset : c.dim + "Not Installed" + c.reset}`)
+  if (globalStat.isInstalled) {
+    console.log(`  Installed Version: ${c.cyan}v${globalStat.installedVersion || cliVersion}${c.reset}`)
+  }
+  console.log(`  Config Path:       ${globalStat.configPath}`)
+  console.log(`  Subagent Depth:    ${globalStat.subagentDepth ?? "not set"}`)
+  console.log(`  Plugin Linked:     ${globalStat.isPluginRegistered ? c.green + "Yes" + c.reset : "No"}`)
+  console.log(`  Agents Count:      ${globalStat.agentCount} agents in ${globalStat.agentsDir}`)
 
   console.log(`\n${c.bold}Local Directory Configuration (.opencode):${c.reset}`)
-  console.log(`  Status:         ${localStat.isInstalled ? c.green + "Installed (Local Active)" + c.reset : c.dim + "Not Installed" + c.reset}`)
-  console.log(`  Config Path:    ${localStat.configPath}`)
-  console.log(`  Plugin Linked:  ${localStat.isPluginRegistered ? c.green + "Yes" + c.reset : "No"}`)
-  console.log(`  Agents Count:   ${localStat.agentCount} agents\n`)
+  console.log(`  Status:            ${localStat.isInstalled ? c.green + "Installed (Local Active)" + c.reset : c.dim + "Not Installed" + c.reset}`)
+  if (localStat.isInstalled) {
+    console.log(`  Installed Version: ${c.cyan}v${localStat.installedVersion || cliVersion}${c.reset}`)
+  }
+  console.log(`  Config Path:       ${localStat.configPath}`)
+  console.log(`  Plugin Linked:     ${localStat.isPluginRegistered ? c.green + "Yes" + c.reset : "No"}`)
+  console.log(`  Agents Count:      ${localStat.agentCount} agents\n`)
 }
 
 async function runInteractiveMenu() {
@@ -269,12 +294,18 @@ async function runInteractiveMenu() {
 
   while (true) {
     const stat = getStatus(true)
+    const installedVer = stat.installedVersion ? `v${stat.installedVersion}` : `v${cliVersion}`
+    const statusDetails = stat.isInstalled
+      ? `(${c.cyan}${installedVer}${c.reset}, Agents: ${stat.agentCount}, Depth: ${stat.subagentDepth})`
+      : ""
+
     console.log(`
 ${c.bold}${c.cyan}┌────────────────────────────────────────────────────────┐${c.reset}
 ${c.bold}${c.cyan}│          Agent-Teams v2 Setup & Management             │${c.reset}
 ${c.bold}${c.cyan}└────────────────────────────────────────────────────────┘${c.reset}
+  ${c.dim}CLI Package:${c.reset}   @mdsohail99/opencode-agent-teams@${cliVersion}
   ${c.dim}Global Config:${c.reset} ${stat.targetDir}
-  ${c.dim}Status:${c.reset}        ${stat.isInstalled ? c.green + "● Installed & Active" + c.reset : c.yellow + "○ Not Installed" + c.reset} ${stat.isInstalled ? `(Agents: ${stat.agentCount}, Depth: ${stat.subagentDepth})` : ""}
+  ${c.dim}Status:${c.reset}        ${stat.isInstalled ? c.green + "● Installed & Active" + c.reset : c.yellow + "○ Not Installed" + c.reset} ${statusDetails}
 
   ${c.cyan}1${c.reset}  Install / Update Agent-Teams ${c.green}(Global - Recommended)${c.reset}
   ${c.cyan}2${c.reset}  Install to Current Project Only ${c.dim}(Local)${c.reset}

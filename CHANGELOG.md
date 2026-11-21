@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v1.0.0
 
 ---
 
+## [2.1.2] - 2026-11-22
+
+### Performance & Lightweight Optimization
+- **Eliminate Redundant Transitive Downloads:** Moved `@opencode/plugin`, `@opencode/client`, `@opencode/schema`, and `effect` to optional `peerDependencies` since OpenCode already provides them natively at runtime.
+- **Fast CLI Startup:** `npx @mdsohail99/opencode-agent-teams` now downloads in ~1.5s (370 KB total) with zero heavy sub-packages.
+
+---
+
 ## [2.1.1] - 2026-11-22
 
 ### Fixed
