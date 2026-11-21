@@ -132,13 +132,20 @@ async function doInstall(globalMode = true) {
   }
   config.experimental.subagent_depth = 2
 
-  const pluginRef = fs.existsSync(path.join(rootDir, "src", "index.ts"))
+  const isLocalDev = fs.existsSync(path.join(rootDir, ".git"))
+  const pluginRef = isLocalDev
     ? rootDir.replace(/\\/g, "/")
     : "@mdsohail99/opencode-agent-teams"
 
   if (!Array.isArray(config.plugins)) {
     config.plugins = []
   }
+  // Clean up any stale or temporary npx cache paths
+  config.plugins = config.plugins.filter((p) => {
+    if (typeof p !== "string") return true
+    if (p.includes("_npx") && p.includes("opencode-agent-teams")) return false
+    return true
+  })
   if (!config.plugins.includes(pluginRef)) {
     config.plugins.push(pluginRef)
   }
@@ -312,6 +319,7 @@ const isLocal = args.includes("--local") || args.includes("-l")
 const isGlobal = !isLocal
 const isHelp = args.includes("--help") || args.includes("-h")
 const isStatus = args.includes("status") || args.includes("--status")
+const isMenu = args.includes("menu") || args.includes("--menu")
 const isInstallExplicit = args.includes("install") || args.includes("--install")
 
 if (isHelp) {
@@ -320,6 +328,7 @@ Agent-Teams v2 CLI for OpenCode
 
 Usage:
   npx @mdsohail99/opencode-agent-teams                     Launch interactive menu (default)
+  npx @mdsohail99/opencode-agent-teams menu                Launch interactive menu explicitly
   npx @mdsohail99/opencode-agent-teams install [options]   Install Agent-Teams plugin and agents
   npx @mdsohail99/opencode-agent-teams uninstall [options] Uninstall Agent-Teams cleanly
   npx @mdsohail99/opencode-agent-teams status              Inspect current status
@@ -334,6 +343,11 @@ Options:
 
 if (isStatus) {
   printStatus()
+  process.exit(0)
+}
+
+if (isMenu) {
+  await runInteractiveMenu()
   process.exit(0)
 }
 

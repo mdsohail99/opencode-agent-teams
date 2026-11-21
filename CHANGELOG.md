@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v1.0.0
 
 ---
 
+## [2.1.1] - 2026-11-22
+
+### Fixed
+- **CLI Plugin Reference Isolation:** Fixed `bin/cli.js` to ensure the registered plugin in `opencode.json` is always `"@mdsohail99/opencode-agent-teams"` rather than an ephemeral `_npx` cache directory.
+- **Explicit Menu Command:** Added `menu` / `--menu` command to `bin/cli.js` so users can explicitly open the interactive TUI management menu even in non-TTY or wrapped environments.
+
+---
+
 ## [2.1.0] - 2026-11-21
 
 ### Changed & Modernized (OpenCode v2.3.2 Engine Alignment)
